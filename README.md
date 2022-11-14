@@ -1,4 +1,4 @@
-# Chicago Business Map Maker
+# Chicago Company Map Maker 🗺️
 
 Create a map of Chicago locations for any company.
 
