@@ -1,6 +1,6 @@
-# Chicago Map Maker
+# Chicago Business Map Maker
 
-Create a map of any company's Chicago locations.
+Create a map of Chicago locations for any company.
 
 Open the `chi_map_maker.ipynb` notebook in Colab, replace the `query` text with your desired company name, and run all cells. The notebook will output a map file using data from [OpenStreetsMap](https://wiki.openstreetmap.org/wiki/Nominatim) and the [Chicago Data Portal](https://data.cityofchicago.org/). 
 
