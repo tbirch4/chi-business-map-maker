@@ -9,3 +9,5 @@ Note: OpenStreetsMap queries may require some trial and error. If ran successful
   * `Lou Malnatis` returns no results, but `Lou Malnati's` returns 10. 
   
   * Results for `Whole Foods` include the company's Pullman distribution center, but the `Whole Foods Market` results do not.
+  
+This uses OpenStreetsMap becuase it's open source and free; however, it's sometimes missing locations. Consider [contributing to OSM](https://wiki.openstreetmap.org/wiki/Getting_Involved) if you find missing data.
