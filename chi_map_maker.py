@@ -45,10 +45,10 @@ def get_points(query, outlines):
 
       tile_minx, tile_miny, tile_maxx, tile_maxy = tile.bounds
       viewbox = [
-      str(tile_minx) + ", " 
-      + str(tile_miny) + ", " 
-      + str(tile_maxx) + ", " 
-      + str(tile_maxy)
+        str(tile_minx) + ", " 
+        + str(tile_miny) + ", " 
+        + str(tile_maxx) + ", " 
+        + str(tile_maxy)
       ]
       payload["viewbox"] = viewbox
       payload["bounded"] = 1
@@ -109,6 +109,7 @@ def create_tiles(outlines):
 # Plot geodata.
 def plot_map(query, outlines, points):
   fig, ax = plt.subplots(figsize = (12, 12))
+  ax.title(query)
   ax.axis("off")
 
   outlines.plot(
