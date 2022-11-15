@@ -18,7 +18,7 @@ def get_outlines():
   return outlines_gdf
 
 
-# Get coordinates for each location.
+# Get coordinates for locations of queried company.
 def get_points(query, outlines):
   url = "https://nominatim.openstreetmap.org/search?"
   payload = {
@@ -33,9 +33,7 @@ def get_points(query, outlines):
     return None
 
   elif len(df.index) == 50:
-    print("Initial API response contained 50 results. "
-          + "Implementing tiled search.") 
-    tiles = create_tiles(query, outlines)
+    tiles = create_tiles(outlines)
     tiled_df = pd.DataFrame()
 
     for i, tile in enumerate(tiles):
@@ -66,29 +64,25 @@ def get_points(query, outlines):
       ])
       
     tiled_df = tiled_df[tiled_df["address"].apply(
-        lambda x: x.get('city',"")) == "Chicago"]
+      lambda x: x.get('city',"")) == "Chicago"]
     tiled_df.drop_duplicates(subset=["place_id"], inplace=True)
     tiled_df.drop_duplicates(subset=["display_name"], inplace=True)
-    tiled_gdf = gpd.GeoDataFrame(
-        tiled_df, 
-        geometry=gpd.points_from_xy(tiled_df["lon"], tiled_df["lat"]), 
-        crs="EPSG:4326"
-        )
+    tiled_df["geom"] = gpd.points_from_xy(tiled_df["lon"], tiled_df["lat"])
+    tiled_gdf = gpd.GeoDataFrame(tiled_df, geometry="geom", crs="EPSG:4326")
     print("\r", end="")
     return tiled_gdf
 
   else: 
-    df = df[df["address"].apply(lambda x: x.get("city","")) == "Chicago"] 
-    points_gdf = gpd.GeoDataFrame(
-        df,
-        geometry=gpd.points_from_xy(df["lon"], df["lat"]), 
-        crs="EPSG:4326"
-        ) 
+    df = df[df["address"].apply(lambda x: x.get("city","")) == "Chicago"]
+    df["geom"] = gpd.points_from_xy(df["lon"], df["lat"])
+    points_gdf = gpd.GeoDataFrame(df, geometry="geom", crs="EPSG:4326") 
     return points_gdf
 
+
 # If too many results for one API call, break geography into tiles.
-def create_tiles(query, outlines):
-  minx, miny, maxx, maxy = outlines.unary_union.bounds
+def create_tiles(outlines):
+  city_boundary = outlines.unary_union
+  minx, miny, maxx, maxy = city_boundary.bounds
 
   tile_count = 81
   tile_sqrt = round(np.sqrt(tile_count))
@@ -107,7 +101,7 @@ def create_tiles(query, outlines):
       grid.append(poly_ij)
 
   grid_gdf = gpd.GeoDataFrame(grid, geometry=0)
-  grid_gdf = grid_gdf[grid_gdf.intersects(outlines.unary_union) == True][0]
+  grid_gdf = grid_gdf[grid_gdf.intersects(city_boundary) == True][0]
 
   return grid_gdf
 
@@ -133,15 +127,24 @@ def plot_map(query, outlines, points):
   plt.savefig(query + ".png", bbox_inches="tight")
 
 
-def main():
-  query = input('Input your search query (e.g., Lou Malnati\'s): ')
+# Execute functions.
+def make_map(query: str):
+  """
+  ## Add company name.
 
+  Add a string with the company name you want to search (e.g., \"Lou Malnati's\").
+
+  Note: OpenStreetsMap queries can be unforgiving and may require some trial and error. If ran successfully, this function will output a csv containing all hits; review them and iterate if necessary. Examples:
+  * `Lou Malnatis` returns no results, but `Lou Malnati's` returns 10. 
+  * Results for `Whole Foods` include the company's Pullman distribution center, but the `Whole Foods Market` results do not. 
+  """
   outlines_gdf = get_outlines()
   points_gdf = get_points(query, outlines_gdf)
+
   if points_gdf is None:
     print("ERROR: API returned no results. Please try a different query.")
   else:
     plot_map(query, outlines_gdf, points_gdf)
-    
+    points_gdf["display_name"].sort_values().to_csv(query + ".csv")
 
-main()
+  print("Execution complete.")
